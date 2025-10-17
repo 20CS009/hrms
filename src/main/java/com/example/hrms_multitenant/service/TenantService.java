@@ -2,14 +2,17 @@ package com.example.hrms_multitenant.service;
 
 import com.example.hrms_multitenant.dto.TenantRegisterRequest;
 import com.example.hrms_multitenant.dto.TenantRegisterResponse;
+<<<<<<< HEAD
 import com.example.hrms_multitenant.entity.Employee;
 import com.example.hrms_multitenant.entity.Tenant;
 import com.example.hrms_multitenant.repository.EmployeeRepository;
+=======
+import com.example.hrms_multitenant.entity.Tenant;
+>>>>>>> 5757ae1f76b78cbe3d2b5ef156c2d369a1c51216
 import com.example.hrms_multitenant.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +23,15 @@ public class TenantService {
     private final TenantSchemaCreator schemaCreator; // Utility to handle schema creation
     private final PasswordEncoder passwordEncoder; // Inject password encoder
 
+<<<<<<< HEAD
     @Transactional
     public TenantRegisterResponse registerTenant(TenantRegisterRequest request) {
 
         //  Check if schema already exists
+=======
+    public TenantRegisterResponse registerTenant(TenantRegisterRequest request) {
+        // Check if schema already exists
+>>>>>>> 5757ae1f76b78cbe3d2b5ef156c2d369a1c51216
         if (tenantRepository.existsBySchemaName(request.getSchemaName())) {
             throw new RuntimeException("Schema name already exists");
         }
@@ -33,6 +41,7 @@ public class TenantService {
         tenant.setOrgName(request.getOrgName());
         tenant.setContactEmail(request.getContactEmail());
         tenant.setSchemaName(request.getSchemaName());
+<<<<<<< HEAD
         Tenant savedTenant = tenantRepository.save(tenant);
 
         // Create schema for tenant using utility
@@ -53,6 +62,11 @@ public class TenantService {
         employeeRepository.save(superAdmin);
 
         // Return DTO response
+=======
+
+        Tenant savedTenant = tenantRepository.save(tenant);
+
+>>>>>>> 5757ae1f76b78cbe3d2b5ef156c2d369a1c51216
         return new TenantRegisterResponse(
                 savedTenant.getId(),
                 savedTenant.getOrgName(),
