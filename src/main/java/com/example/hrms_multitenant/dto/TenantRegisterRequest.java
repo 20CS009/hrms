@@ -1,14 +1,13 @@
 package com.example.hrms_multitenant.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TenantRegisterRequest {
@@ -19,4 +18,7 @@ public class TenantRegisterRequest {
     @Email(message = "Contact email should be valid")
     @NotBlank(message = "Contact email is required")
     private String contactEmail;
+
+    @NotBlank(message = "Schema name is required")
+    private String schemaName;
 }

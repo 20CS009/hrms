@@ -19,5 +19,5 @@ public class TenantUser {
     private String orgName;
     private String email;
     private String password;
-//    private String fullName;
+
 }

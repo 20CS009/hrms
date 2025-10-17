@@ -1,9 +1,13 @@
 package com.example.hrms_multitenant.service;
 
+import com.example.hrms_multitenant.dto.TenantRegisterRequest;
+import com.example.hrms_multitenant.dto.TenantRegisterResponse;
+import com.example.hrms_multitenant.entity.Employee;
 import com.example.hrms_multitenant.entity.Tenant;
-import com.example.hrms_multitenant.exception.DuplicateOrgException;
+import com.example.hrms_multitenant.repository.EmployeeRepository;
 import com.example.hrms_multitenant.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,26 +16,48 @@ import org.springframework.transaction.annotation.Transactional;
 public class TenantService {
 
     private final TenantRepository tenantRepository;
+    private final EmployeeRepository employeeRepository;
+    private final TenantSchemaCreator schemaCreator; // Utility to handle schema creation
+    private final PasswordEncoder passwordEncoder; // Inject password encoder
 
     @Transactional
-    public Tenant registerTenant(String orgName, String contactEmail) {
+    public TenantRegisterResponse registerTenant(TenantRegisterRequest request) {
 
-        // Check if organization already exists
-        if (tenantRepository.existsByOrgName(orgName)) {
-            throw new DuplicateOrgException("Organization with this name already exists");
+        //  Check if schema already exists
+        if (tenantRepository.existsBySchemaName(request.getSchemaName())) {
+            throw new RuntimeException("Schema name already exists");
         }
 
+        //  Save tenant info in public schema
         Tenant tenant = new Tenant();
-        tenant.setOrgName(orgName);
-        tenant.setContactEmail(contactEmail);
-        tenant.setSchemaName("tenant_" + orgName.toLowerCase().replaceAll("\\s+", "_")); // Example: create schema name
-
-        // Save tenant
+        tenant.setOrgName(request.getOrgName());
+        tenant.setContactEmail(request.getContactEmail());
+        tenant.setSchemaName(request.getSchemaName());
         Tenant savedTenant = tenantRepository.save(tenant);
 
-        // Here, you can call method to create tenant schema via Flyway or JDBC
-        // createTenantSchema(savedTenant.getSchemaName());
+        // Create schema for tenant using utility
+        schemaCreator.createSchema(request.getSchemaName());
 
-        return savedTenant;
+        // Insert Super Admin employee in public schema-here just
+        // details default whatever I add employee and role as just SuperAdmin
+        Employee superAdmin = new Employee();
+        superAdmin.setName("Super Admin");
+        superAdmin.setEmail(request.getContactEmail());
+        superAdmin.setRole("SUPER_ADMIN");
+        superAdmin.setTenant(savedTenant); // Link to tenant
+
+        // Generate and encode a default password
+        String defaultPassword = "Admin@123"; // You can choose any default
+        superAdmin.setPassword(passwordEncoder.encode(defaultPassword));
+
+        employeeRepository.save(superAdmin);
+
+        // Return DTO response
+        return new TenantRegisterResponse(
+                savedTenant.getId(),
+                savedTenant.getOrgName(),
+                savedTenant.getContactEmail(),
+                savedTenant.getSchemaName()
+        );
     }
 }

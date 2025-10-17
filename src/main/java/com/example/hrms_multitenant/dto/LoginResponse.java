@@ -10,7 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
-//    private String orgName;
-//    private String email;
+
     private String message;
 }
