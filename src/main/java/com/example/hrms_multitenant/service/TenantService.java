@@ -1,11 +1,11 @@
 package com.example.hrms_multitenant.service;
 
+import com.example.hrms_multitenant.dto.TenantRegisterRequest;
+import com.example.hrms_multitenant.dto.TenantRegisterResponse;
 import com.example.hrms_multitenant.entity.Tenant;
-import com.example.hrms_multitenant.exception.DuplicateOrgException;
 import com.example.hrms_multitenant.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -13,25 +13,24 @@ public class TenantService {
 
     private final TenantRepository tenantRepository;
 
-    @Transactional
-    public Tenant registerTenant(String orgName, String contactEmail) {
-
-        // Check if organization already exists
-        if (tenantRepository.existsByOrgName(orgName)) {
-            throw new DuplicateOrgException("Organization with this name already exists");
+    public TenantRegisterResponse registerTenant(TenantRegisterRequest request) {
+        // Check if schema already exists
+        if (tenantRepository.existsBySchemaName(request.getSchemaName())) {
+            throw new RuntimeException("Schema name already exists");
         }
 
         Tenant tenant = new Tenant();
-        tenant.setOrgName(orgName);
-        tenant.setContactEmail(contactEmail);
-        tenant.setSchemaName("tenant_" + orgName.toLowerCase().replaceAll("\\s+", "_")); // Example: create schema name
+        tenant.setOrgName(request.getOrgName());
+        tenant.setContactEmail(request.getContactEmail());
+        tenant.setSchemaName(request.getSchemaName());
 
-        // Save tenant
         Tenant savedTenant = tenantRepository.save(tenant);
 
-        // Here, you can call method to create tenant schema via Flyway or JDBC
-        // createTenantSchema(savedTenant.getSchemaName());
-
-        return savedTenant;
+        return new TenantRegisterResponse(
+                savedTenant.getId(),
+                savedTenant.getOrgName(),
+                savedTenant.getContactEmail(),
+                savedTenant.getSchemaName()
+        );
     }
 }
